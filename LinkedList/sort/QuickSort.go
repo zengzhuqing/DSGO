@@ -13,7 +13,18 @@ func QuickSort(head *list.Node) *list.Node {
 	return head
 }
 func doQuickSort(head *list.Node) (first *list.Node, last *list.Node) {
-	if head.Next == nil {
+	first, last = sortOnlyTwo(head)
+	if first == nil {
+		var left, center, right, _ = partition(head)
+		var knot *list.Node
+		first, knot = doQuickSort(left)
+		knot.Next = center
+		center.Next, last = doQuickSort(right)
+	}
+	return first, last
+}
+func sortOnlyTwo(head *list.Node) (first *list.Node, last *list.Node) {
+	if head.Next == nil { //head != nil
 		return head, head
 	}
 	var node = head.Next
@@ -24,39 +35,23 @@ func doQuickSort(head *list.Node) (first *list.Node, last *list.Node) {
 		}
 		return head, node
 	}
-	var left, center, right, _ = partition(head)
-
-	first, node = doQuickSort(left)
-	node.Next = center
-	center.Next, last = doQuickSort(right)
-	return first, last
+	return nil, nil
 }
-
 func partition(node0 *list.Node) (left *list.Node, center *list.Node, right *list.Node, size int) {
 	var node1 = node0.Next
 	var node2 = node1.Next
 	var tail = node2.Next
 
-	if node0.Val > node1.Val { //a > b
-		if node1.Val > node2.Val { //b > c		//a b c = b c a
-			center, left, right = node1, node2, node0
-		} else { //c >= b
-			if node0.Val > node2.Val { //a > c	//a b c = c b a
-				center, left, right = node2, node1, node0
-			} else { //a b c = a b c
-				center, left, right = node0, node1, node2
-			}
-		}
-	} else { //b >= a
-		if node2.Val > node0.Val { //c > a
-			if node1.Val > node2.Val { //b > c	//a b c = c a b
-				center, left, right = node2, node0, node1
-			} else { //a b c = b a c
-				center, left, right = node1, node0, node2
-			}
-		} else { //a b c = a c b
-			center, left, right = node0, node2, node1
-		}
+	if node1.Val > node2.Val {
+		node1, node2 = node2, node1
+	}
+	switch {
+	case node0.Val < node1.Val:
+		left, center, right = node0, node1, node2
+	case node0.Val > node2.Val:
+		left, center, right = node1, node2, node0
+	default:
+		left, center, right = node1, node0, node2
 	}
 
 	size = 3

@@ -5,14 +5,14 @@ protected:
 	NonCopyable(void) {}
 	~NonCopyable(void) {}
 private:
-	NonCopyable(const NonCopyable&);
-	const NonCopyable& operator=(const NonCopyable&);
+	NonCopyable(const NonCopyable&) = delete;
+	const NonCopyable& operator=(const NonCopyable&) = delete;
 };
 
-template<typename T>
-class Allocator {
+template<typename T, unsigned N=1024>
+class Allocator final : NonCopyable {
 private:
-	static const int SIZE = 1023;
+	static const unsigned SIZE = N-1;
 	union Obj {
 		char	data[sizeof(T)];
 		Obj*	next;
@@ -22,36 +22,36 @@ private:
 		Block*	next;
 	};
 
-	int		m_spot;
-	Block*	m_crrent;
-	Block*	m_head;
-	Obj*	m_free;
-	int		m_balance;
+	unsigned	m_spot;
+	Block*		m_crrent;
+	Block*		m_head;
+	Obj*		m_free;
+	unsigned	m_balance;
 
 public:
 	Allocator(void)
 		: m_spot(0), m_crrent(new Block), m_head(m_crrent),
-		m_free(NULL), m_balance(0)
-	{ m_crrent->next = NULL; }
+		m_free(nullptr), m_balance(0)
+	{ m_crrent->next = nullptr; }
 	~Allocator(void) {
-		while (m_head != NULL) {
+		while (m_head != nullptr) {
 			m_crrent = m_head;
 			m_head = m_head->next;
 			operator delete(m_crrent);
 		}
 	}
-	int balance(void) const { return m_balance; }
+	unsigned balance(void) const { return m_balance; }
 
 	T* allocate(void) {
 		Obj* obj = m_free;
-		if (obj != NULL) {
+		if (obj != nullptr) {
 			m_free = m_free->next;
 		} else {
 			if (m_spot == SIZE) {
 				m_spot = 0;
 				m_crrent = m_crrent->next =
 					reinterpret_cast<Block*>(operator new(sizeof(Block)));
-				m_crrent->next = NULL;
+				m_crrent->next = nullptr;
 			}
 			obj = &m_crrent->data[m_spot++];
 		}

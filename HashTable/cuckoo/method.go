@@ -1,6 +1,10 @@
 package cuckoo
 
-func (tb *hashTable) Search(key string) bool {
+import (
+	"bytes"
+)
+
+func (tb *hashTable) Search(key []byte) bool {
 	for i := 0; i < WAYS; i++ {
 		var idx = (tb.idx + i) % WAYS
 		var table = &tb.core[idx]
@@ -10,7 +14,7 @@ func (tb *hashTable) Search(key string) bool {
 		var target = table.bucket[index]
 		if target != nil &&
 			target.code[idx] == code &&
-			target.key == key {
+			bytes.Compare(target.key, key) == 0 {
 			return true
 		}
 	}
@@ -18,7 +22,7 @@ func (tb *hashTable) Search(key string) bool {
 }
 
 //成功返回true，没有返回false
-func (tb *hashTable) Remove(key string) bool {
+func (tb *hashTable) Remove(key []byte) bool {
 	for i := 0; i < WAYS; i++ {
 		var idx = (tb.idx + i) % WAYS
 		var table = &tb.core[idx]
@@ -28,7 +32,7 @@ func (tb *hashTable) Remove(key string) bool {
 		var target = table.bucket[index]
 		if target != nil &&
 			target.code[idx] == code &&
-			target.key == key {
+			bytes.Compare(target.key, key) == 0 {
 			tb.cnt--
 			table.bucket[index] = nil
 			return true
@@ -38,7 +42,7 @@ func (tb *hashTable) Remove(key string) bool {
 }
 
 //成功返回true，冲突返回false
-func (tb *hashTable) Insert(key string) bool {
+func (tb *hashTable) Insert(key []byte) bool {
 	var code [WAYS]uint
 	for i := 0; i < WAYS; i++ {
 		var table = &tb.core[i]
@@ -48,7 +52,7 @@ func (tb *hashTable) Insert(key string) bool {
 		var target = table.bucket[index]
 		if target != nil &&
 			target.code[i] == code[i] &&
-			target.key == key {
+			bytes.Compare(target.key, key) == 0 {
 			return false
 		}
 	}
@@ -72,7 +76,7 @@ func (tb *hashTable) Insert(key string) bool {
 		}
 
 		if age != 0 { //这里设定一个阈值，限制扩容次数
-			panic("hash fail!")
+			panic("too many conflicts")
 		} //实际上不能解决大量hash重码的情况，最坏情况只能报错
 
 		//调整失败(回绕)，扩容
