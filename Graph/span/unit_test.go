@@ -5,6 +5,11 @@ import (
 	"testing"
 )
 
+func assert(t *testing.T, state bool) {
+	if !state {
+		t.Fail()
+	}
+}
 func guard_ut(t *testing.T) {
 	if err := recover(); err != nil {
 		t.Fail()
@@ -25,6 +30,7 @@ func isTheSame(vec1 []Edge, vec2 []Edge) bool {
 
 func Test_Prim(t *testing.T) {
 	defer guard_ut(t)
+
 	var roads = make([][]graph.Path, 9)
 	roads[0] = []graph.Path{{1, 8}, {3, 4}, {6, 11}}
 	roads[1] = []graph.Path{{0, 8}, {2, 7}, {4, 2}, {8, 4}}
@@ -36,14 +42,13 @@ func Test_Prim(t *testing.T) {
 	roads[7] = []graph.Path{{4, 6}, {6, 1}, {8, 2}}
 	roads[8] = []graph.Path{{1, 4}, {2, 14}, {5, 10}, {7, 2}}
 
-	var dist, fail = Prim(roads)
-	if fail || dist != 37 {
-		t.Fail()
-	}
+	var dist, err = Prim(roads)
+	assert(t, err == nil && dist == 37)
 }
 
 func Test_PlainPrim(t *testing.T) {
 	defer guard_ut(t)
+
 	var matrix = [][]uint{
 		{0, 8, 0, 4, 0, 0, 11, 0, 0},
 		{8, 0, 7, 0, 2, 0, 0, 0, 4},
@@ -55,14 +60,13 @@ func Test_PlainPrim(t *testing.T) {
 		{0, 0, 0, 0, 6, 0, 1, 0, 2},
 		{0, 4, 14, 0, 0, 10, 0, 2, 0}}
 
-	var dist, fail = PlainPrim(matrix)
-	if fail || dist != 37 {
-		t.Fail()
-	}
+	var dist, err = PlainPrim(matrix)
+	assert(t, err == nil && dist == 37)
 }
 
 func Test_Kruskal(t *testing.T) {
 	defer guard_ut(t)
+
 	var roads = []graph.Edge{
 		{0, 1, 8},
 		{0, 3, 4},
@@ -79,14 +83,13 @@ func Test_Kruskal(t *testing.T) {
 		{6, 7, 1},
 		{7, 8, 2}}
 
-	var dist, fail = Kruskal(roads, 9)
-	if fail || dist != 37 {
-		t.Fail()
-	}
+	var dist, err = Kruskal(roads, 9)
+	assert(t, err == nil && dist == 37)
 }
 
 func Test_PrimTree(t *testing.T) {
 	defer guard_ut(t)
+
 	var roads = make([][]graph.Path, 9)
 	roads[0] = []graph.Path{{1, 8}, {3, 4}, {6, 11}}
 	roads[1] = []graph.Path{{0, 8}, {2, 7}, {4, 2}, {8, 4}}
@@ -100,14 +103,13 @@ func Test_PrimTree(t *testing.T) {
 
 	var expected = []Edge{{0, 3}, {0, 1}, {1, 4}, {1, 8}, {8, 7}, {7, 6}, {1, 2}, {2, 5}}
 
-	var ret, fail = PrimTree(roads)
-	if fail || !isTheSame(ret, expected) {
-		t.Fail()
-	}
+	var ret, err = PrimTree(roads)
+	assert(t, err == nil && isTheSame(ret, expected))
 }
 
 func Test_PlainPrimTree(t *testing.T) {
 	defer guard_ut(t)
+
 	var matrix = [][]uint{
 		{0, 8, 0, 4, 0, 0, 11, 0, 0},
 		{8, 0, 7, 0, 2, 0, 0, 0, 4},
@@ -121,8 +123,6 @@ func Test_PlainPrimTree(t *testing.T) {
 
 	var expected = []Edge{{0, 3}, {0, 1}, {1, 4}, {1, 8}, {8, 7}, {7, 6}, {1, 2}, {2, 5}}
 
-	var ret, fail = PlainPrimTree(matrix)
-	if fail || !isTheSame(ret, expected) {
-		t.Fail()
-	}
+	var ret, err = PlainPrimTree(matrix)
+	assert(t, err == nil && isTheSame(ret, expected))
 }

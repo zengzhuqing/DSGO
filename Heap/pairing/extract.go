@@ -1,6 +1,7 @@
 package pairing
 
 import (
+	"errors"
 	"unsafe"
 )
 
@@ -60,12 +61,12 @@ func (hp *Heap) PopNode() *Node {
 	}
 	return unit
 }
-func (hp *Heap) Pop() (key int, fail bool) {
+func (hp *Heap) Pop() (int, error) {
 	var node = hp.PopNode()
 	if node == nil {
-		return 0, true
+		return 0, errors.New("empty")
 	}
-	return node.key, false
+	return node.key, nil
 }
 
 func (hp *Heap) Remove(target *Node) {
@@ -88,6 +89,7 @@ func (hp *Heap) FloatUp(target *Node, value int) {
 	if target != nil && value < target.key {
 		target.key = value
 		if super := target.prev; super != nil { //非根
+			target.prev = nil
 			if super.next == target { //super为兄
 				super.next, target.next = super.hook(target.next), nil
 				hp.root = merge(hp.root, target)

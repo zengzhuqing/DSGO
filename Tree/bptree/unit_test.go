@@ -6,62 +6,51 @@ import (
 	"time"
 )
 
+func assert(t *testing.T, state bool) {
+	if !state {
+		t.Fail()
+	}
+}
+func guard_ut(t *testing.T) {
+	if err := recover(); err != nil {
+		t.Fail()
+	}
+}
+
 func Test_Tree(t *testing.T) {
-	defer func() {
-		if err := recover(); err != nil {
-			t.Fail()
-		}
-	}()
+	defer guard_ut(t)
+
 	var tree Tree
 	var cnt = 0
-	const size = 2000
-	var list [size * 2]int
+	const size = 5000
+	var list = new([size]int)
 
 	rand.Seed(time.Now().Unix())
-	for i := 0; i < size*2; i++ {
+	for i := 0; i < size; i++ {
 		list[i] = rand.Int()
 	}
 
-	//插入两份
-	for i := 0; i < size*2; i++ {
+	for i := 0; i < size; i++ {
 		if tree.Insert(list[i]) {
 			cnt++
 		}
 	}
-	if tree.Insert(list[size]) {
-		t.Fail()
-	}
-	for i := 0; i < size*2; i++ {
-		if !tree.Search(list[i]) {
-			t.Fail()
-		}
+	for i := 0; i < size; i++ {
+		assert(t, tree.Search(list[i]))
+		assert(t, !tree.Insert(list[i]))
 	}
 
-	//遍历
 	mark_ut = -(int(^uint(0) >> 1)) - 1
 	tree.Travel(checkNum)
 
-	//删除第一份
 	for i := 0; i < size; i++ {
 		if tree.Remove(list[i]) {
 			cnt--
 		}
+		assert(t, !tree.Search(list[i]))
 	}
-	for i := 0; i < size; i++ {
-		if tree.Search(list[i]) {
-			t.Fail()
-		}
-	}
-
-	//删除第二份
-	for i := size; i < size*2; i++ {
-		if tree.Remove(list[i]) {
-			cnt--
-		}
-	}
-	if !tree.IsEmpty() || cnt != 0 {
-		t.Fail()
-	}
+	assert(t, tree.IsEmpty() && cnt == 0)
+	assert(t, !tree.Remove(0))
 }
 
 var mark_ut = 0

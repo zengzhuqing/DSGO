@@ -1,5 +1,9 @@
 package binomial
 
+import (
+	"errors"
+)
+
 //二项堆的Push和Top操作的复杂度为O(1)，其余核心操作复杂度为O(logN)。
 type Heap struct {
 	list *node
@@ -15,12 +19,15 @@ type node struct {
 func (hp *Heap) IsEmpty() bool {
 	return hp.list == nil
 }
+func (hp *Heap) Clear() {
+	hp.list, hp.top = nil, nil
+}
 
-func (hp *Heap) Top() (key int, fail bool) {
+func (hp *Heap) Top() (int, error) {
 	if hp.IsEmpty() {
-		return 0, true
+		return 0, errors.New("empty")
 	}
-	return hp.top.key, false
+	return hp.top.key, nil
 }
 func (hp *Heap) Push(key int) {
 	var unit = new(node)
@@ -46,17 +53,19 @@ func reverse(list *node) *node {
 	}
 	return head
 }
-func (hp *Heap) Pop() (key int, fail bool) {
+func (hp *Heap) Pop() (int, error) {
 	if hp.IsEmpty() {
-		return 0, true
+		return 0, errors.New("empty")
 	}
-	key = hp.top.key
+	var key = hp.top.key
 
-	var knot = fakeHead(&hp.list)
+	var hp_list = hp.list //直接取对GC不友好，绕一下道
+	var knot = fakeHead(&hp_list)
 	for knot.peer != hp.top {
 		knot = knot.peer
 	}
 	knot.peer = knot.peer.peer
+	hp.list = hp_list
 
 	hp.merge(reverse(hp.top.child))
 	hp.top = hp.list
@@ -67,5 +76,5 @@ func (hp *Heap) Pop() (key int, fail bool) {
 			}
 		}
 	}
-	return key, false
+	return key, nil
 }
