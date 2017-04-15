@@ -1,4 +1,4 @@
-package graph
+package heap
 
 import (
 	"unsafe"
@@ -11,7 +11,7 @@ type node struct {
 	next  *node
 }
 
-func NewVector(size int) []node {
+func NewVectorPH(size int) []node {
 	return make([]node, size)
 }
 
@@ -70,17 +70,17 @@ func Extract(root *node) *node {
 	}
 	return nil
 }
-func FloatUp(root *node, target *node, distance uint) *node {
-	if target != nil && distance < target.Dist {
-		target.Dist = distance
-		if super := target.prev; super != nil {
-			if super.next == target {
+func FloatUp(root *node, target *node, dist uint) *node {
+	if target != nil {
+		target.Dist = dist
+		if super := target.prev; super != nil && super.Dist > target.Dist {
+			target.prev = nil
+			if super.next == target { //super为兄
 				super.next, target.next = super.hook(target.next), nil
-				root = merge(root, target)
-			} else if super.Dist > distance {
+			} else { //super为父
 				super.child, target.next = super.hook(target.next), nil
-				root = merge(root, target)
 			}
+			root = merge(root, target)
 		}
 	}
 	return root

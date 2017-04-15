@@ -4,71 +4,62 @@ import (
 	"testing"
 )
 
-func guard_ut(t *testing.T) {
+func assert(t *testing.T, state bool) {
+	if !state {
+		t.Fail()
+	}
+}
+func guardUT(t *testing.T) {
 	if err := recover(); err != nil {
 		t.Fail()
 	}
 }
 
 func Test_BinarySearch(t *testing.T) {
-	defer guard_ut(t)
+	defer guardUT(t)
 	var list = []int{2, 2, 4, 6, 6, 6, 8, 8}
 
-	if SearchFirst(list, 1) != 0 ||
-		SearchFirst(list, 2) != 0 ||
-		SearchFirst(list, 3) != 2 ||
-		SearchFirst(list, 6) != 3 ||
-		SearchFirst(list, 9) != 8 ||
-		SearchLast(list, 1) != -1 ||
-		SearchLast(list, 5) != 2 ||
-		SearchLast(list, 6) != 5 ||
-		SearchLast(list, 8) != 7 ||
-		SearchLast(list, 9) != 7 {
-		t.Fail()
-	}
+	assert(t, SearchFirst(list, 1) == 0)
+	assert(t, SearchFirst(list, 2) == 0)
+	assert(t, SearchFirst(list, 3) == 2)
+	assert(t, SearchFirst(list, 6) == 3)
+	assert(t, SearchFirst(list, 9) == 8)
+	assert(t, SearchLast(list, 1) == -1)
+	assert(t, SearchLast(list, 5) == 2)
+	assert(t, SearchLast(list, 6) == 5)
+	assert(t, SearchLast(list, 8) == 7)
+	assert(t, SearchLast(list, 9) == 7)
 }
 
 func Test_CyclicQueue(t *testing.T) {
-	defer guard_ut(t)
+	defer guardUT(t)
 
 	var queue, _ = NewQueue(5)
 	for i := 1; i < 8; i++ {
-		var fail = queue.Push(i)
-		if fail {
+		var err = queue.Push(i)
+		if err != nil {
 			t.Fail()
 		}
 	}
-	var fail = queue.Push(9)
-	if !fail {
-		t.Fail()
-	}
+	var err = queue.Push(9)
+	assert(t, err != nil)
 	//1, 2, 3, 4, 5, 6, 7
 
 	for i := 1; i < 5; i++ {
-		var key, fail = queue.Pop()
-		if fail || key != i {
-			t.Fail()
-		}
+		var key, err = queue.Pop()
+		assert(t, err == nil && key == i)
 	}
 	//5, 6, 7
 	for i := 8; i < 12; i++ {
-		var fail = queue.Push(i)
-		if fail {
-			t.Fail()
-		}
+		var err = queue.Push(i)
+		assert(t, err == nil)
 	}
-	if !queue.IsFull() {
-		t.Fail()
-	}
+	assert(t, queue.IsFull())
 	//5, 6, 7, 8, 9, 10, 11
 
 	for i := 5; i < 12; i++ {
-		var key, fail = queue.Pop()
-		if fail || key != i {
-			t.Fail()
-		}
+		var key, err = queue.Pop()
+		assert(t, err == nil && key == i)
 	}
-	if !queue.IsEmpty() {
-		t.Fail()
-	}
+	assert(t, queue.IsEmpty())
 }

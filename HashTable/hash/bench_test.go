@@ -4,49 +4,42 @@ import (
 	"testing"
 )
 
-func Test_Nothing(t *testing.T) {
-	//Do Nothing
+func Benchmark_JenkinsHash(b *testing.B) {
+	hashBenchmark(b, bench_data, JenkinsHash)
 }
-
-var str = "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-
+func Benchmark_MurmurHash(b *testing.B) {
+	hashBenchmark(b, bench_data, MurmurHash)
+}
 func Benchmark_BKDRhash(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		BKDRhash(str)
-	}
+	hashBenchmark(b, bench_data, BKDRhash)
 }
 func Benchmark_SDBMhash(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		SDBMhash(str)
-	}
+	hashBenchmark(b, bench_data, SDBMhash)
 }
 func Benchmark_DJBhash(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		DJBhash(str)
-	}
+	hashBenchmark(b, bench_data, DJBhash)
 }
 func Benchmark_DJB2hash(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		DJB2hash(str)
-	}
+	hashBenchmark(b, bench_data, DJB2hash)
 }
 func Benchmark_FNVhash(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		FNVhash(str)
-	}
+	hashBenchmark(b, bench_data, FNVhash)
 }
 func Benchmark_RShash(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		RShash(str)
-	}
+	hashBenchmark(b, bench_data, RShash)
 }
 func Benchmark_JShash(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		JShash(str)
-	}
+	hashBenchmark(b, bench_data, JShash)
 }
 func Benchmark_APhash(b *testing.B) {
+	hashBenchmark(b, bench_data, APhash)
+}
+
+var bench_data = []byte("1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+func hashBenchmark(b *testing.B, str []byte, hash func(str []byte) uint32) {
+	b.SetBytes(int64(len(str)))
 	for i := 0; i < b.N; i++ {
-		APhash(str)
+		hash(str)
 	}
 }

@@ -1,10 +1,14 @@
 package deque
 
-const piece_sz = 30
+import (
+	"errors"
+)
+
+const PIECE_SIZE = 30
 
 type piece struct {
 	fw, bw *piece
-	space  [piece_sz]int
+	space  [PIECE_SIZE]int
 }
 type index struct {
 	pt  *piece
@@ -16,7 +20,7 @@ type deque struct {
 }
 
 //dq.front.idx永远不为0，以piece_sz代之，此时要求dq.front.fw != nil
-//dq.back.idx永远不为(piece_sz-1)，以-1代之，此时要求dq.front.bw != nil
+//dq.back.idx永远不为(PIECE_SIZE-1)，以-1代之，此时要求dq.front.bw != nil
 
 func (dq *deque) initialize() {
 	dq.reset(new(piece))
@@ -28,7 +32,7 @@ func (dq *deque) reset(block *piece) {
 	dq.cnt = 0
 	block.fw, block.bw = nil, nil
 	dq.front.pt, dq.back.pt = block, block
-	dq.front.idx, dq.back.idx = piece_sz/2, piece_sz/2-1
+	dq.front.idx, dq.back.idx = PIECE_SIZE/2, PIECE_SIZE/2-1
 }
 
 func (dq *deque) IsEmpty() bool {
@@ -39,7 +43,7 @@ func (dq *deque) Size() int {
 }
 
 func (dq *deque) PushFront(key int) {
-	if dq.front.idx == piece_sz {
+	if dq.front.idx == PIECE_SIZE {
 		dq.front.idx = 0
 		if dq.front.pt.fw == nil {
 			var block = new(piece)
@@ -54,7 +58,7 @@ func (dq *deque) PushFront(key int) {
 }
 func (dq *deque) PushBack(key int) {
 	if dq.back.idx == -1 {
-		dq.back.idx = piece_sz - 1
+		dq.back.idx = PIECE_SIZE - 1
 		if dq.back.pt.bw == nil {
 			var block = new(piece)
 			block.fw, block.bw = dq.back.pt, nil
@@ -67,44 +71,44 @@ func (dq *deque) PushBack(key int) {
 	dq.cnt++
 }
 
-func (dq *deque) Front() (key int, fail bool) {
+func (dq *deque) Front() (int, error) {
 	if dq.IsEmpty() {
-		return 0, true
+		return 0, errors.New("empty")
 	}
-	return dq.front.pt.space[dq.front.idx-1], false
+	return dq.front.pt.space[dq.front.idx-1], nil
 }
-func (dq *deque) Back() (key int, fail bool) {
+func (dq *deque) Back() (int, error) {
 	if dq.IsEmpty() {
-		return 0, true
+		return 0, errors.New("empty")
 	}
-	return dq.back.pt.space[dq.back.idx+1], false
+	return dq.back.pt.space[dq.back.idx+1], nil
 }
 
-func (dq *deque) PopFront() (key int, fail bool) {
+func (dq *deque) PopFront() (int, error) {
 	if dq.IsEmpty() {
-		return 0, true
+		return 0, errors.New("empty")
 	}
 	dq.cnt--
 	dq.front.idx--
-	key = dq.front.pt.space[dq.front.idx]
+	var key = dq.front.pt.space[dq.front.idx]
 	if dq.front.idx == 0 {
-		dq.front.idx = piece_sz //dq.front.idx永远不为0
-		dq.front.pt.fw = nil    //只保留一块缓冲
+		dq.front.idx = PIECE_SIZE //dq.front.idx永远不为0
+		dq.front.pt.fw = nil      //只保留一块缓冲
 		dq.front.pt = dq.front.pt.bw
 	}
-	return key, false
+	return key, nil
 }
-func (dq *deque) PopBack() (key int, fail bool) {
+func (dq *deque) PopBack() (int, error) {
 	if dq.IsEmpty() {
-		return 0, true
+		return 0, errors.New("empty")
 	}
 	dq.cnt--
 	dq.back.idx++
-	key = dq.back.pt.space[dq.back.idx]
-	if dq.back.idx == piece_sz-1 {
-		dq.back.idx = -1    //dq.back.idx永远不为(piece_sz-1)
-		dq.back.pt.bw = nil //只保留一块缓冲，因为
+	var key = dq.back.pt.space[dq.back.idx]
+	if dq.back.idx == PIECE_SIZE-1 {
+		dq.back.idx = -1    //dq.back.idx永远不为(PIECE_SIZE-1)
+		dq.back.pt.bw = nil //只保留一块缓冲
 		dq.back.pt = dq.back.pt.fw
 	}
-	return key, false
+	return key, nil
 }

@@ -3,6 +3,32 @@ package rbt
 //成功返回true，没有返回false。
 //红黑树删除过程包括：O(log N)的搜索，O(1)的旋转，O(log N)的平衡因子调整。
 func (tr *Tree) Remove(key int32) bool {
+	var target = tr.findRemoveTarget(key)
+	if target == nil {
+		return false
+	}
+	var victim, orphan = tr.findRemoveVictim(target)
+
+	if tr.path.isEmpty() { //此时victim==target
+		tr.root = orphan
+		if tr.root != nil {
+			tr.root.black = true
+		}
+	} else {
+		tr.hookSubTree(orphan)
+		if victim.black { //红victim随便删，黑的要考虑
+			if !orphan.isBlack() {
+				orphan.black = true //红子变黑顶上
+			} else {
+				tr.adjustAfterDelete()
+			}
+		}
+		target.key = victim.key //李代桃僵
+	}
+	return true
+}
+
+func (tr *Tree) findRemoveTarget(key int32) *node {
 	tr.path.clear()
 	var target = tr.root
 	for target != nil && key != target.key {
@@ -14,16 +40,16 @@ func (tr *Tree) Remove(key int32) bool {
 			target = target.right
 		}
 	}
-	if target == nil {
-		return false
-	}
+	return target
+}
 
-	var victim, orphan *node = nil, nil
-	if target.left == nil {
+func (tr *Tree) findRemoveVictim(target *node) (victim *node, orphan *node) {
+	switch {
+	case target.left == nil:
 		victim, orphan = target, target.right
-	} else if target.right == nil {
+	case target.right == nil:
 		victim, orphan = target, target.left
-	} else {
+	default:
 		tr.path.push(target, false)
 		victim = target.right
 		for victim.left != nil {
@@ -32,24 +58,7 @@ func (tr *Tree) Remove(key int32) bool {
 		}
 		orphan = victim.right
 	}
-
-	if tr.path.isEmpty() { //此时victim==target
-		tr.root = orphan
-		if tr.root != nil {
-			tr.root.black = true
-		}
-	} else {
-		tr.hookSubTree(orphan)
-		if victim.black { //红victim随便删，黑的要考虑
-			if orphan != nil && !orphan.black {
-				orphan.black = true //红子变黑顶上
-			} else {
-				tr.adjustAfterDelete()
-			}
-		}
-		target.key = victim.key //李代桃僵
-	}
-	return true
+	return victim, orphan
 }
 
 //----------------红叔模式----------------
@@ -95,8 +104,8 @@ func (tr *Tree) adjustAfterDelete() {
 				tr.path.push(U, lf)
 				continue //变出黑U后再行解决
 			} else {
-				if L == nil || L.black {
-					if R == nil || R.black { //双黑，变色解决
+				if L.isBlack() {
+					if R.isBlack() { //双黑，变色解决
 						U.black = false
 						if G.black && !tr.path.isEmpty() {
 							G, lf = tr.path.pop()
@@ -125,8 +134,8 @@ func (tr *Tree) adjustAfterDelete() {
 				tr.path.push(U, lf)
 				continue //变出黑U后再行解决
 			} else {
-				if R == nil || R.black {
-					if L == nil || L.black { //双黑，变色解决
+				if R.isBlack() {
+					if L.isBlack() { //双黑，变色解决
 						U.black = false
 						if G.black && !tr.path.isEmpty() {
 							G, lf = tr.path.pop()

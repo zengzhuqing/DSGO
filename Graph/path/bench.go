@@ -1,7 +1,7 @@
 package path
 
 import (
-	"Graph/graph"
+	"DSGO/Graph/graph"
 	"fmt"
 	"time"
 )
@@ -17,43 +17,50 @@ func BenchMark() {
 	var matrix_u = transform(roads_u)
 	var matrix = sAdjMatrix(matrix_u)
 	var size = len(roads)
-	fmt.Printf("Prepare Graph [%d vertexes & %d edges] in %v\n", size, total, time.Since(start))
+	fmt.Printf("Prepare Graph [%d vertexes & %d edges] in %v\n",
+		size, total, time.Since(start))
 
 	start = time.Now()
 	for i := 0; i < size; i++ {
 		SPFA(roads, i)
 	}
-	fmt.Println("SPFA:          ", time.Since(start))
+	fmt.Println("SPFA:           ", time.Since(start))
 
 	start = time.Now()
 	for i := 0; i < size; i++ {
 		Dijkstra(roads_u, i)
 	}
-	fmt.Println("Dijkstra:      ", time.Since(start))
+	fmt.Println("Dijkstra:       ", time.Since(start))
+
+	start = time.Now()
+	for i := 0; i < size; i++ {
+		DijkstraX(roads_u, i)
+	}
+	fmt.Println("Simple Dijkstra:", time.Since(start))
 
 	start = time.Now()
 	for i := 0; i < size; i++ {
 		PlainDijkstra(matrix_u, i)
 	}
-	fmt.Println("Plain Dijkstra:", time.Since(start))
+	fmt.Println("Plain Dijkstra: ", time.Since(start))
 
 	start = time.Now()
 	FloydWarshall(matrix)
-	fmt.Println("Floyd-Warshall:", time.Since(start))
+	fmt.Println("Floyd-Warshall: ", time.Since(start))
 }
 
 func readGraph() (roads [][]Path, total int, err error) {
 	var size int
 	_, err = fmt.Scan(&size, &total)
 	if err != nil || size < 2 || size > total {
-		return [][]Path{}, 0, err
+		return nil, 0, err
 	}
 	roads = make([][]Path, size)
 	var a, b, dist int
 	for i := 0; i < total; i++ {
 		_, err = fmt.Scan(&a, &b, &dist)
 		if err != nil {
-			return [][]Path{}, 0, err
+			return nil, 0, err
 		}
 		roads[a] = append(roads[a], Path{Next: b, Dist: dist})
 	}
@@ -65,7 +72,7 @@ func uAdjList(roads [][]Path) [][]graph.Path {
 	for i, vec := range roads {
 		var line = make([]graph.Path, len(vec))
 		for j, path := range vec {
-			line[j] = graph.Path{Next: path.Next, Dist: uint(path.Dist)}
+			line[j] = graph.Path{Next: path.Next, Weight: uint(path.Dist)}
 		}
 		out[i] = line
 	}
@@ -78,7 +85,7 @@ func transform(roads [][]graph.Path) [][]uint {
 	for i, vec := range roads {
 		var line = make([]uint, size) //全零
 		for _, path := range vec {
-			line[path.Next] = path.Dist
+			line[path.Next] = path.Weight
 		}
 		matrix[i] = line
 	}

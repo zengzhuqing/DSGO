@@ -6,16 +6,16 @@ type Deque interface {
 	IsEmpty() bool
 	PushFront(key int)
 	PushBack(key int)
-	PopFront() (key int, fail bool)
-	PopBack() (key int, fail bool)
-	Front() (key int, fail bool)
-	Back() (key int, fail bool)
+	PopFront() (int, error)
+	PopBack() (int, error)
+	Front() (int, error)
+	Back() (int, error)
 }
 
 func NewDeque() Deque {
-	var container = new(deque)
-	container.initialize()
-	return container
+	var con = new(deque)
+	con.initialize()
+	return con
 }
 
 type stack struct {
@@ -26,22 +26,22 @@ type Stack interface {
 	Size() int
 	IsEmpty() bool
 	Push(key int)
-	Pop() (key int, fail bool)
-	Top() (key int, fail bool)
+	Pop() (int, error)
+	Top() (int, error)
 }
 
 func NewStack() Stack {
-	var container = new(stack)
-	container.initialize()
-	return container
+	var con = new(stack)
+	con.initialize()
+	return con
 }
 func (s *stack) Push(key int) {
 	s.PushFront(key)
 }
-func (s *stack) Pop() (key int, fail bool) {
+func (s *stack) Pop() (int, error) {
 	return s.PopFront()
 }
-func (s *stack) Top() (key int, fail bool) {
+func (s *stack) Top() (int, error) {
 	return s.Front()
 }
 
@@ -53,19 +53,19 @@ type Queue interface {
 	Size() int
 	IsEmpty() bool
 	Push(key int)
-	Pop() (key int, fail bool)
-	Front() (key int, fail bool)
-	Back() (key int, fail bool)
+	Pop() (int, error)
+	Front() (int, error)
+	Back() (int, error)
 }
 
 func NewQueue() Queue {
-	var container = new(queue)
-	container.initialize()
-	return container
+	var con = new(queue)
+	con.initialize()
+	return con
 }
 func (q *queue) Push(key int) {
 	q.PushBack(key)
 }
-func (q *queue) Pop() (key int, fail bool) {
+func (q *queue) Pop() (int, error) {
 	return q.PopFront()
 }

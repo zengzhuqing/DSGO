@@ -1,90 +1,112 @@
 package flow
 
-type edge struct {
-	next int
-	val  uint
+import (
+	"DSGO/Graph/graph"
+)
+
+type data struct {
+	origin     [][]graph.Path
+	shadow     [][]graph.Path
+	reflux     [][]graph.Path
+	queue      arrayQueue
+	stack      arrayStack
+	memo       []uint
+	start, end int
 }
 
-//输入邻接矩阵，返回头节点到尾顶点见的最大流。
-//复杂度为O(V^2 E)。
-func Dinic(matrix [][]uint) uint {
-	var size = len(matrix)
-	if size == 0 {
-		return 0
-	}
+func newWorkObj(roads [][]graph.Path, start, end int) *data {
+	var size = len(roads)
+
+	var pack = new(data)
+	pack.shadow = make([][]graph.Path, size) //分层残图
+	pack.reflux = make([][]graph.Path, size) //逆流暂存
 
 	var space1 = make([]int, size)  //临时空间
 	var space2 = make([]uint, size) //临时空间
-	var q queue
-	q.bind(space1)
-	var s stack
-	s.bind(space1, space2)
 
-	var shadow = make([][]edge, size-1) //分层残图
+	pack.origin = roads
+	pack.start, pack.end = start, end
+	pack.queue.bind(space1)
+	pack.stack.bind(space1, space2)
+	pack.memo = space2
+
+	return pack
+}
+
+//输入邻接表，返回最大流，复杂度为O(V^2 E)。
+func Dinic(roads [][]graph.Path, start, end int) uint {
+	var size = len(roads)
+	if start < 0 || end < 0 ||
+		start >= size || end >= size ||
+		start == end {
+		return 0
+	}
+
+	var pack = newWorkObj(roads, start, end)
+	return pack.dinic()
+}
+
+func (pk *data) dinic() uint {
+	var size = len(pk.origin)
+	for i := 0; i < size; i++ {
+		sort(pk.origin[i]) //要求有序
+	}
 
 	var flow = uint(0)
-	for separate(shadow, matrix, &q, space2) {
-		//由于search一次会删除图的若干条边，所以循环次数为O(E/k)
-		//循环内的separate和flushBack操作的复杂度都是O(V^2)，search的复杂度为O(Vk)
-		flow += search(shadow, matrix, &s)
-		flushBack(shadow, matrix)
+	for pk.separate() {
+		flow += pk.search()
+		pk.flushBack()
 	}
 	return flow
 }
 
-////////////////////////////////////////////////////////////////////////////////
-type stack struct {
-	space []int
-	spcx  []uint
-	top   int
+type dataM struct {
+	matrix     [][]uint
+	shadow     [][]graph.Path
+	queue      arrayQueue
+	stack      arrayStack
+	memo       []uint
+	start, end int
 }
 
-func (s *stack) bind(space []int, spcx []uint) {
-	s.space, s.spcx = space, spcx
-}
-func (s *stack) clear() {
-	s.top = 0
-}
-func (s *stack) isEmpty() bool {
-	return s.top == 0
-}
-func (s *stack) push(id int, val uint) {
-	s.space[s.top], s.spcx[s.top] = id, val
-	s.top++
-}
-func (s *stack) pop() (id int, val uint) {
-	s.top--
-	return s.space[s.top], s.spcx[s.top]
+func newWorkObjM(matrix [][]uint, start, end int) *dataM {
+	var size = len(matrix)
+
+	var pack = new(dataM)
+	pack.shadow = make([][]graph.Path, size) //分层残图
+
+	var space1 = make([]int, size)  //临时空间
+	var space2 = make([]uint, size) //临时空间
+
+	pack.matrix = matrix
+	pack.start, pack.end = start, end
+	pack.queue.bind(space1)
+	pack.stack.bind(space1, space2)
+	pack.memo = space2
+
+	return pack
 }
 
-////////////////////////////////////////////////////////////////////////////////
-type queue struct {
-	space    []int
-	rpt, wpt int
-}
-
-func (q *queue) bind(space []int) {
-	q.space = space
-}
-func (q *queue) clear() {
-	q.rpt, q.wpt = 0, 0
-}
-func (q *queue) isEmpty() bool {
-	return q.rpt == q.wpt
-}
-func (q *queue) push(key int) {
-	q.space[q.wpt] = key
-	q.wpt = (q.wpt + 1) % len(q.space)
-}
-func (q *queue) pop() int {
-	var key = q.space[q.rpt]
-	q.rpt = (q.rpt + 1) % len(q.space)
-	return key
-}
-func (q *queue) traceBack() (key int, fail bool) {
-	q.wpt--
-	if q.wpt < 0 {
-		return 0, true
+//输入邻接矩阵，返回最大流，复杂度为O(V^2 E)。
+func DinicM(matrix [][]uint, start, end int) uint {
+	var size = len(matrix)
+	if start < 0 || end < 0 ||
+		start >= size || end >= size ||
+		start == end {
+		return 0
 	}
-	return q.space[q.wpt], false
+
+	var pack = newWorkObjM(matrix, start, end)
+	return pack.dinic()
+}
+
+func (pk *dataM) dinic() uint {
+	var flow = uint(0)
+	for pk.separate() {
+		//由于search一次会删除图的若干条边，所以循环次数为O(E/k)
+		//循环内的separate和flushBack操作的复杂度都是O(V^2)，search的复杂度为O(Vk)
+		flow += pk.search()
+		pk.flushBack()
+	}
+	return flow
 }

@@ -1,84 +1,77 @@
 package sort
 
-import (
-	"time"
-)
-
-//快速排序，改进的冒泡排序，不具有稳定性。
-//平均复杂度为O(NlogN) & O(logN)，最坏情况是O(N^2) & O(N)。
-//其中比较操作是O(NlogN)，常数与MergeSort相当；挪移操作是O(NlogN)，常数小于MergeSort。
-//QuickSort不适合递归实现(有爆栈风险)。
+// 快速排序，改进的冒泡排序，不具有稳定性。
+// 平均复杂度为O(NlogN) & O(logN)，最坏情况是O(N^2) & O(N)。
+// 其中比较操作是O(NlogN)，常数与MergeSort相当；挪移操作是O(NlogN)，常数小于MergeSort。
+// 这里采用递归实现，但QuickSort不适合递归实现(有爆栈风险)。
 func QuickSort(list []int) {
-	magic = uint(time.Now().Unix())
-	doQuickSort(list)
-}
-func doQuickSort(list []int) {
-	if len(list) < sz_limit {
-		InsertSort(list)
+	if len(list) < LOWER_BOUND {
+		SimpleSort(list)
 	} else {
-		var knot = partition(list)
-		doQuickSort(list[:knot])
-		doQuickSort(list[knot+1:])
+		var m = partition(list)
+		QuickSort(list[:m])
+		QuickSort(list[m:])
 	}
 }
 
-var magic = ^uint(0)
-
 func partition(list []int) int {
-	var size = len(list) //不少于3
-	var x, y = int(magic % uint(size-1)), int(magic % uint(size-2))
-	magic = magic*1103515245 + 12345
+	//谨慎处理，以防越界
+	//var pivot = list[len(list)/2]
+	var pivot = median(list[0],
+		list[len(list)/2], list[len(list)-1])
 
-	var a, b = 1 + x, 1 + (1+x+y)%(size-1) //a != b
-	var barrier = list[0]
-	if list[a] < list[b] {
-		if barrier < list[a] {
-			barrier, list[a] = list[a], barrier
-		} else if list[b] < barrier {
-			barrier, list[b] = list[b], barrier
-		}
-	} else { //list[a] >= list[b]
-		if barrier > list[a] {
-			barrier, list[a] = list[a], barrier
-		} else if list[b] > barrier {
-			barrier, list[b] = list[b], barrier
-		}
-	} //三点取中法，每轮至少解决一个
-
-	a, b = 1, size-1
+	var a, b = 0, len(list) - 1
 	for { //注意对称性
-		for list[a] < barrier {
+		for list[a] < pivot {
 			a++
 		}
-		for list[b] > barrier {
+		for list[b] > pivot {
 			b--
 		}
 		if a >= b {
 			break
 		}
-		//以下的交换操作是主要开销所在
 		list[a], list[b] = list[b], list[a]
 		a++
 		b--
 	}
-	list[0], list[b] = list[b], barrier
-	return b
+	return a
+}
+
+//三点取中不一定很有用
+func median(a, b, c int) int {
+	if a > b {
+		if b > c {
+			return b //a b c
+		} else if a > c {
+			return c //a c b
+		} else {
+			return a //c a b
+		}
+	} else {
+		if a > c {
+			return a //b a c
+		} else if b > c {
+			return c //b c a
+		} else {
+			return b //c b a
+		}
+	}
 }
 
 /*
 func QuickSort(list []int) {
-	magic = uint(time.Now().Unix())
 	var tasks stack
 	tasks.push(0, len(list))
 	for !tasks.isEmpty() {
 		var start, end = tasks.pop()
-		if end-start < sz_limit {
-			InsertSort(list[start:end])
+		if end-start < LOWER_BOUND {
+			SimpleSort(list[start:end])
 		} else {
 			var knot = partition(list[start:end]) + start
-			tasks.push(knot+1, end)
+			tasks.push(knot, end)
 			tasks.push(start, knot)
-		} //每轮保证至少解决一个，否则最坏情况可能是死循环
+		}
 	}
 }
 

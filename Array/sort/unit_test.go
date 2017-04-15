@@ -1,4 +1,3 @@
-//1234567890
 package sort
 
 import (
@@ -7,58 +6,81 @@ import (
 	"time"
 )
 
-const sz_big = 2000
-const sz_small = 300
+const bigSize = 2000
+const smallSize = 300
 
 func Test_BubleSort(t *testing.T) {
-	testArraySort(t, sz_small, ramdomArray, BubleSort)
-	testArraySort(t, sz_small, stupidArray, BubleSort)
+	testArraySort(t, BubleSort, smallSize, smallSize)
 }
 func Test_SelectSort(t *testing.T) {
-	testArraySort(t, sz_small, ramdomArray, SelectSort)
-	testArraySort(t, sz_small, stupidArray, SelectSort)
+	testArraySort(t, SelectSort, smallSize, smallSize)
 }
 func Test_InsertSort(t *testing.T) {
-	testArraySort(t, sz_small, ramdomArray, InsertSort)
-	testArraySort(t, sz_small, stupidArray, InsertSort)
+	testArraySort(t, InsertSort, smallSize, smallSize)
+}
+func Test_SimpleSort(t *testing.T) {
+	testArraySort(t, SimpleSort, smallSize, smallSize)
+}
+func Test_SimpleSortX(t *testing.T) {
+	testArraySort(t, SimpleSort, smallSize, smallSize)
 }
 func Test_HeapSort(t *testing.T) {
-	testArraySort(t, sz_big, ramdomArray, HeapSort)
-	testArraySort(t, sz_small, stupidArray, HeapSort)
+	testArraySort(t, HeapSort, bigSize, smallSize)
 }
 func Test_MergeSort(t *testing.T) {
-	testArraySort(t, sz_big, ramdomArray, MergeSort)
-	testArraySort(t, sz_small, stupidArray, MergeSort)
+	testArraySort(t, MergeSort, bigSize, smallSize)
 }
 func Test_QuickSort(t *testing.T) {
-	testArraySort(t, sz_big, ramdomArray, QuickSort)
-	testArraySort(t, sz_small, stupidArray, QuickSort)
+	testArraySort(t, QuickSort, bigSize, smallSize)
+}
+func Test_QuickSortY(t *testing.T) {
+	testArraySort(t, QuickSortY, bigSize, smallSize)
 }
 func Test_IntroSort(t *testing.T) {
-	testArraySort(t, sz_big, ramdomArray, IntroSort)
-	testArraySort(t, sz_big, stupidArray, IntroSort)
+	testArraySort(t, IntroSort, bigSize, bigSize)
+}
+func Test_IntroSortY(t *testing.T) {
+	testArraySort(t, IntroSortY, bigSize, bigSize)
+}
+func Test_RadixSort(t *testing.T) {
+	testArraySort(t, RadixSort, bigSize, smallSize)
 }
 
-func testArraySort(t *testing.T, size int, create func(int) []int, doit func([]int)) {
-	defer func() {
-		if err := recover(); err != nil {
-			t.Fail()
-		}
-	}()
-	var list = create(size)
-	doit(list)
-	if !checkArrary(list) {
+func assert(t *testing.T, state bool) {
+	if !state {
 		t.Fail()
 	}
-	list = create(5)
-	doit(list)
-	if !checkArrary(list) {
+}
+func guardUT(t *testing.T) {
+	if err := recover(); err != nil {
 		t.Fail()
 	}
-	list = []int{0}
+}
+
+func testArraySort(t *testing.T, doit func([]int), sz1 int, sz2 int) {
+	defer guardUT(t)
+
+	var list = randArray(sz1)
+	var tips = figureOutTips(list)
 	doit(list)
-	list = list[:0]
+	assert(t, checkArrary(list) && tips == figureOutTips(list))
+
+	list = desArray(sz2)
 	doit(list)
+	assert(t, checkArrary(list))
+	for i := 0; i < len(list); i++ {
+		list[i] = 99
+	}
+	doit(list)
+	for _, num := range list {
+		assert(t, num == 99)
+	}
+
+	for i := 0; i < 6; i++ {
+		list = randArray(i)
+		doit(list)
+		assert(t, checkArrary(list))
+	}
 }
 func checkArrary(list []int) bool {
 	for i, size := 1, len(list); i < size; i++ {
@@ -68,8 +90,15 @@ func checkArrary(list []int) bool {
 	}
 	return true
 }
+func figureOutTips(list []int) int {
+	var tips = 0
+	for _, num := range list {
+		tips ^= num
+	}
+	return tips
+}
 
-func ramdomArray(size int) []int {
+func randArray(size int) []int {
 	rand.Seed(time.Now().Unix())
 	var list = make([]int, size)
 	for i := 0; i < size; i++ {
@@ -77,10 +106,18 @@ func ramdomArray(size int) []int {
 	}
 	return list
 }
-func stupidArray(size int) []int {
+func desArray(size int) []int {
 	var list = make([]int, size)
 	for i := 0; i < size; i++ {
-		list[i] = (size - i) / 2
+		list[i] = size - i
+	}
+	return list
+}
+func constArray(size int) []int {
+	var val = rand.Int()
+	var list = make([]int, size)
+	for i := 0; i < size; i++ {
+		list[i] = val
 	}
 	return list
 }

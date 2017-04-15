@@ -1,56 +1,62 @@
 package sort
 
 import (
-	"LinkedList/list"
+	"DSGO/LinkedList/list"
 	"math/rand"
 	"testing"
 	"time"
 )
 
-const sz_big = 500
-const sz_small = 100
+func assert(t *testing.T, state bool) {
+	if !state {
+		t.Fail()
+	}
+}
+func guardUT(t *testing.T) {
+	if err := recover(); err != nil {
+		t.Fail()
+	}
+}
+
+const bigSize = 500
+const smallSize = 100
 
 func Test_MergeSort(t *testing.T) {
-	testLinkListSort(t, sz_big, ramdomLinkList, MergeSort)
-	testLinkListSort(t, sz_small, stupidLinkList, MergeSort)
+	testLinkListSort(t, MergeSort, bigSize, smallSize)
 }
 func Test_QuickSort(t *testing.T) {
-	testLinkListSort(t, sz_big, ramdomLinkList, QuickSort)
-	testLinkListSort(t, sz_small, stupidLinkList, QuickSort)
+	testLinkListSort(t, QuickSort, bigSize, smallSize)
 }
 func Test_IntroSort(t *testing.T) {
-	testLinkListSort(t, sz_big, ramdomLinkList, IntroSort)
-	testLinkListSort(t, sz_small, stupidLinkList, IntroSort)
+	testLinkListSort(t, IntroSort, bigSize, bigSize)
+}
+func Test_RadixSort(t *testing.T) {
+	testLinkListSort(t, RadixSort, bigSize, smallSize)
 }
 
-func testLinkListSort(t *testing.T, size int, create func(int) *list.Node, doit func(*list.Node) *list.Node) {
-	defer func() {
-		if err := recover(); err != nil {
-			t.Fail()
-		}
-	}()
-	var head = create(size)
+func testLinkListSort(t *testing.T,
+	doit func(*list.Node) *list.Node, sz1 int, sz2 int) {
+	defer guardUT(t)
+
+	var head = randLinkedList(sz1)
+	var tips = figureOutTips(head)
 	head = doit(head)
-	if !checkLinkList(head, size) {
-		t.Fail()
-	}
-	head = create(5)
+	assert(t, checkLinkList(head, sz1) && tips == figureOutTips(head))
+
+	head = desLinkList(sz2)
 	head = doit(head)
-	if !checkLinkList(head, 5) {
-		t.Fail()
-	}
-	head = new(list.Node)
-	head.Next = nil
-	head = doit(head)
-	if head == nil || head.Next != nil {
-		t.Fail()
-	}
-	head = nil
-	if doit(head) != nil {
-		t.Fail()
+	assert(t, checkLinkList(head, sz2))
+
+	for i := 0; i < 6; i++ {
+		head = randLinkedList(i)
+		head = doit(head)
+		assert(t, checkLinkList(head, i))
 	}
 }
 func checkLinkList(head *list.Node, size int) bool {
+	if size == 0 {
+		return head == nil
+	}
 	var cnt = 1
 	for ; head.Next != nil; head = head.Next {
 		if head.Next.Val < head.Val {
@@ -60,8 +66,15 @@ func checkLinkList(head *list.Node, size int) bool {
 	}
 	return cnt == size
 }
+func figureOutTips(head *list.Node) int {
+	var tips = 0
+	for ; head != nil; head = head.Next {
+		tips ^= head.Val
+	}
+	return tips
+}
 
-func ramdomLinkList(size int) *list.Node {
+func randLinkedList(size int) *list.Node {
 	rand.Seed(time.Now().Unix())
 	var head *list.Node
 	var tail = list.FakeHead(&head)
@@ -73,13 +86,13 @@ func ramdomLinkList(size int) *list.Node {
 	tail.Next = nil
 	return head
 }
-func stupidLinkList(size int) *list.Node {
+func desLinkList(size int) *list.Node {
 	var head *list.Node
 	var tail = list.FakeHead(&head)
 	for i := 0; i < size; i++ {
 		tail.Next = new(list.Node)
 		tail = tail.Next
-		tail.Val = i / 2
+		tail.Val = size - i
 	}
 	tail.Next = nil
 	return head

@@ -42,36 +42,35 @@ func (tr *Tree) Insert(key int32) bool {
 		return true
 	}
 
-	var parrent = tr.root
+	var parent = tr.root
 	for {
-		if key == parrent.key {
+		switch {
+		case key < parent.key:
+			if parent.left == nil {
+				parent.left = newNode(key)
+				return true
+			}
+			parent = parent.left
+		case key > parent.key:
+			if parent.right == nil {
+				parent.right = newNode(key)
+				return true
+			}
+			parent = parent.right
+		default:
 			return false
 		}
-		if key < parrent.key {
-			if parrent.left == nil {
-				parrent.left = newNode(key)
-				return true
-			}
-			parrent = parrent.left
-		} else {
-			if parrent.right == nil {
-				parrent.right = newNode(key)
-				return true
-			}
-			parrent = parrent.right
-		}
 	}
-	return true
 }
 
 //成功返回true，没有返回false
 func (tr *Tree) Remove(key int32) bool {
-	var target, parrent = tr.root, (*node)(nil)
+	var target, parent = tr.root, (*node)(nil)
 	for target != nil && key != target.key {
 		if key < target.key {
-			target, parrent = target.left, target
+			target, parent = target.left, target
 		} else {
-			target, parrent = target.right, target
+			target, parent = target.right, target
 		}
 	}
 	if target == nil {
@@ -79,25 +78,26 @@ func (tr *Tree) Remove(key int32) bool {
 	}
 
 	var victim, orphan *node
-	if target.left == nil {
+	switch {
+	case target.left == nil:
 		victim, orphan = target, target.right
-	} else if target.right == nil {
+	case target.right == nil:
 		victim, orphan = target, target.left
-	} else { //取中右，取中左也是可以的
-		victim, parrent = target.right, target
+	default: //取中右，取中左也是可以的
+		victim, parent = target.right, target
 		for victim.left != nil {
-			victim, parrent = victim.left, victim
+			victim, parent = victim.left, victim
 		}
 		orphan = victim.right
 	}
 
-	if parrent == nil { //此时victim==target
+	if parent == nil { //此时victim==target
 		tr.root = orphan
 	} else {
-		if victim.key < parrent.key {
-			parrent.left = orphan
+		if victim.key < parent.key {
+			parent.left = orphan
 		} else {
-			parrent.right = orphan
+			parent.right = orphan
 		}
 		target.key = victim.key //李代桃僵
 	}

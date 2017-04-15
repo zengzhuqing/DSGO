@@ -1,40 +1,45 @@
 package cuckoo
 
 import (
-	"HashTable/hash"
+	"DSGO/HashTable/hash"
 	"testing"
 )
 
-func Test_HashTable(t *testing.T) {
-	defer func() {
-		if err := recover(); err != nil {
-			t.Fail()
-		}
-	}()
-	var tpl = []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-	var book [52]string
-	for i := 0; i < 52; i++ {
-		book[i] = string(tpl[i : i+26])
-	}
-
-	var fn = [WAYS]func(str string) uint{hash.APhash, hash.FNVhash, hash.JShash}
-	var table = NewHashTable(fn)
-	for i := 0; i < 52; i++ {
-		if !table.Insert(book[i]) {
-			t.Fail()
-		}
-	}
-	for i := 0; i < 52; i++ {
-		if !table.Search(book[i]) {
-			t.Fail()
-		}
-	}
-	for i := 0; i < 52; i++ {
-		if !table.Remove(book[i]) {
-			t.Fail()
-		}
-	}
-	if !table.IsEmpty() {
+func assert(t *testing.T, state bool) {
+	if !state {
 		t.Fail()
 	}
+}
+func guardUT(t *testing.T) {
+	if err := recover(); err != nil {
+		t.Fail()
+	}
+}
+
+func Test_HashTable(t *testing.T) {
+	defer guardUT(t)
+
+	var tpl = []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
+		"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	var book [52][]byte
+	for i := 0; i < 52; i++ {
+		book[i] = tpl[i : i+26]
+	}
+
+	var fn = [WAYS]func([]byte) uint32{hash.APhash, hash.FNVhash, hash.JShash}
+	var table = NewHashTable(fn)
+	for i := 0; i < 52; i++ {
+		assert(t, table.Insert(book[i]))
+	}
+	assert(t, table.Size() == 52)
+	assert(t, !table.Insert(book[0]))
+	for i := 0; i < 52; i++ {
+		assert(t, table.Search(book[i]))
+	}
+	for i := 0; i < 52; i++ {
+		assert(t, table.Remove(book[i]))
+	}
+	assert(t, table.IsEmpty())
+	assert(t, !table.Search(book[0]))
+	assert(t, !table.Remove(book[0]))
 }

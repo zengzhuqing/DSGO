@@ -34,11 +34,15 @@ func (hp *Heap) merge(list *node) {
 	}
 }
 func (hp *Heap) Merge(victim *Heap) {
-	if hp != victim {
-		if hp.top.key > victim.top.key {
-			hp.top = victim.top
+	if hp != victim && !victim.IsEmpty() {
+		if hp.IsEmpty() {
+			*hp = *victim
+		} else {
+			if hp.top.key > victim.top.key {
+				hp.top = victim.top
+			}
+			hp.merge(victim.list)
 		}
-		hp.merge(victim.list)
-		victim.list, victim.top = nil, nil
+		victim.Clear()
 	}
 }

@@ -1,24 +1,44 @@
 #pragma once
 
+//#define WEIGHTED_AVL
+
 class AVLtree : NonCopyable {
 private:
 	struct Node {
-		int		key;
-		int8_t	state;
-		Node*	parent;
-		Node*	left;
-		Node*	right;
+		int			key;
+#ifdef WEIGHTED_AVL
+		unsigned 	weight : sizeof(unsigned)*8 - 3;
+		int			state : 3;
+#else
+		int			state;
+#endif
+		Node*		parent;
+		Node*		left;
+		Node*		right;
 
-		Node* hook(Node* child) {
-			child->parent = this;
-			return child;
-		}
-		Node* tryHook(Node* child) {
-			if (child != NULL) {
+		void hookLeft(Node* child, void* hint = (void*)-1) {
+			if (hint != nullptr || child != nullptr) {
 				child->parent = this;
 			}
-			return child;
+			this->left = child;
 		}
+		void hookRight(Node* child, void* hint = (void*)-1) {
+			if (hint != nullptr || child != nullptr) {
+				child->parent = this;
+			}
+			this->right = child;
+		}
+#ifdef WEIGHTED_AVL
+		unsigned realWeight(void) {
+			return this == nullptr ? 0 : weight;
+		}
+		unsigned subRank(void) {
+			return left->realWeight() + 1;
+		}
+#else
+		unsigned realWeight(void) { return 0; }
+		unsigned subRank(void) { return 0; }
+#endif
 	};
 	Node* m_root;
 	Allocator<Node> m_pool;
@@ -26,11 +46,10 @@ private:
 	static Node* Rotate(Node* G, bool& stop);
 
 public:
-	AVLtree(void) : m_root(NULL) {}
+	AVLtree(void) : m_root(nullptr) {}
 
-	bool isEmpty(void) const { return m_root == NULL; }
-	bool search(int key) const;
-	bool insert(int key);
-	bool remove(int key);
+	bool isEmpty(void) const { return m_root == nullptr; }
+	int search(int key) const;
+	int insert(int key);
+	int remove(int key);
 };
-
